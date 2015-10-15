@@ -115,9 +115,9 @@ WithStmt -> WITH IdentList DO Statement
 
 ProcedureDeclSection -> ProcedureDecl
                      -> FunctionDecl
-ProcedureDecl -> ProcedureHeading ';' [Directive] [PortabilityDirective]
+ProcedureDecl -> ProcedureHeading ';'
                  Block ';'
-FunctionDecl -> FunctionHeading ';' [Directive] [PortabilityDirective]
+FunctionDecl -> FunctionHeading ';'
                 Block ';'
 FunctionHeading -> FUNCTION Ident [FormalParameters] ':' (SimpleType | STRING)
 
