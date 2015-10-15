@@ -1,0 +1,141 @@
+Goal -> [PROGRAM]
+
+DeclSection -> LabelDeclSection
+            -> ConstSection
+            -> TypeSection
+            -> VarSection
+            -> ProcedureDeclSection
+LabelDeclSection -> LABEL LabelId
+ConstSection -> CONST (ConstantDecl ';')...
+ConstantDecl -> Ident '=' ConstExpr 
+             -> Ident ':' TypeId '=' TypedConstant 
+TypeSection -> TYPE (TypeDecl ';') 
+TypeDecl -> Ident '=' [TYPE] Type
+	-> Ident '=' [TYPE] RestrictedType 
+TypedConstant -> (ConstExpr | ArrayConstant | RecordConstant)
+ArrayConstant -> '(' TypedConstant ',' ')'
+RecordConstant -> '(' RecordFieldConstant ';'... ')'
+RecordFieldConstant -> Ident ':' TypedConstant
+Type -> TypeId
+     -> SimpleType
+     -> StrucType
+     -> PointerType
+     -> StringType 
+     -> ProcedureType
+     -> VariantType
+     -> ClassRefType
+
+RestrictedType -> ObjectType
+               -> ClassType
+               -> InterfaceType
+ClassRefType -> CLASS OF TypeId
+SimpleType -> (OrdinalType | RealType)
+RealType -> DOUBLE
+OrdinalType -> (SubrangeType | EnumeratedType | OrdIdent)
+OrdIdent -> INTEGER
+
+SubrangeType -> ConstExpr '..' ConstExpr
+EnumeratedType -> '(' EnumeratedTypeElement ','... ')'
+EnumeratedTypeElement -> Ident [ '=' ConstExpr ]
+StringType -> STRING
+ArrayType -> ARRAY ['[' OrdinalType ','... ']'] OF Type
+RecType -> RECORD [FieldList] END
+FieldList -> FieldDecl ';'... [VariantSection] [';']
+FieldDecl -> IdentList ':' Type
+VariantSection -> CASE [Ident ':'] TypeId OF RecVariant ';'...
+RecVariant -> ConstExpr ','... ':' '(' [FieldList] ')'
+
+SetType -> SET OF OrdinalType 
+PointerType -> '^' TypeId 
+ProcedureType -> (ProcedureHeading | FunctionHeading) [OF OBJECT]
+VarSection -> VAR (VarDecl ';')...
+
+
+Expression -> SimpleExpression [RelOp SimpleExpression]...
+SimpleExpression -> ['+' | '-'] Term [AddOp Term]...
+Term -> Factor [MulOp Factor]...
+Factor -> Designator ['(' ExprList ')']
+       -> '@' Designator
+       -> Number
+       -> String
+       -> NIL
+       -> '(' Expression ')'
+       -> NOT Factor
+       -> TypeId '(' Expression ')'
+RelOp -> '>'
+      -> '<'
+      -> '<='
+      -> '>='
+      -> '<>'
+      -> IN
+AddOp -> '+'
+      -> '-'
+      -> OR
+      -> XOR
+MulOp -> '*'
+      -> '/'
+      -> DIV
+      -> MOD
+      -> AND
+      -> SHL
+      -> SHR
+Designator -> QualId ['.' Ident | '[' ExprList ']' | '^']...
+
+SetElement -> Expression ['..' Expression]
+ExprList -> Expression ','...
+Statement -> [LabelId ':'] [SimpleStatement | StructStmt]
+
+StmtList -> Statement ';' 
+SimpleStatement -> Designator ['(' [ExprList] ')']
+                -> Designator ':=' Expression
+                -> INHERITED
+                -> GOTO LabelId
+StructStmt -> CompoundStmt
+           -> ConditionalStmt
+           -> LoopStmt
+           -> WithStmt
+
+CompoundStmt -> BEGIN StmtList END
+ConditionalStmt -> IfStmt
+
+                -> CaseStmt
+IfStmt -> IF Expression THEN Statement [ELSE Statement]
+CaseStmt -> CASE Expression OF CaseSelector ';'... [ELSE StmtList] [';'] END
+CaseSelector -> CaseLabel ','... ':' Statement
+CaseLabel -> ConstExpr ['..' ConstExpr]
+
+LoopStmt -> RepeatStmt
+         -> WhileStmt
+         -> ForStmt
+RepeatStmt -> REPEAT Statement UNTIL Expression
+WhileStmt -> WHILE Expression DO Statement
+ForStmt -> FOR QualId ':=' Expression (TO | DOWNTO) Expression DO Statement
+
+WithStmt -> WITH IdentList DO Statement
+
+ProcedureDeclSection -> ProcedureDecl
+                     -> FunctionDecl
+ProcedureDecl -> ProcedureHeading ';' [Directive] [PortabilityDirective]
+                 Block ';'
+FunctionDecl -> FunctionHeading ';' [Directive] [PortabilityDirective]
+                Block ';'
+FunctionHeading -> FUNCTION Ident [FormalParameters] ':' (SimpleType | STRING)
+
+ProcedureHeading -> PROCEDURE Ident [FormalParameters]
+FormalParameters -> '(' [FormalParm ';'...] ')'
+FormalParm -> [VAR | CONST ] Parameter                                            
+Parameter -> IdentList [':' ([ARRAY OF] SimpleType | STRING | FILE)]
+          -> Ident ':' SimpleType '=' ConstExpr
+
+
+IdentList -> Ident ','...
+QualId -> [UnitId '.'] Ident
+TypeId -> [UnitId '.'] <type-identifier>
+Ident -> <identifier>
+ConstExpr -> <constant-expression>
+UnitId -> <unit-identifier>
+LabelId -> <label-identifier>
+
+Number -> <number>
+
+String -> <string>
