@@ -9,8 +9,8 @@
 
 //#define StdLaunch
 //#define TEST_Tokenizer
-//#define StdLaunch_1
-#define TEST_Parser
+#define StdLaunch_1
+//#define TEST_Parser
 
 
 #ifdef TEST_Tokenizer
@@ -91,16 +91,20 @@ int main()
 		cin >> FileName;
 		if (FileName == "exit")
 			break;
-		Parser P(FileName.c_str());
-		if (P.FileNotFound)
-			continue;
 		else
 		{
-			P.Parse();
-			if (P.getException())
+			try
+			{
+				Parser P(FileName.c_str());
+				P.Parse();
+				P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
+				printf("%lf\n", P.CalcTree());
+			}
+			catch (exception a)
+			{
+				printf_s("\n%s\n\n", a.what());
 				continue;
-			P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
-			//printf("%lf\n", P.CalcTree());
+			}
 		}
 	}
 	return 0;

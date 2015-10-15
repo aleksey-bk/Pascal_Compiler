@@ -20,9 +20,9 @@ private:
 	bool IsQuote(int c);
 	bool IsDot(int c);
 	bool IsUnderscore(int c);
-	bool IsKeyword(string s);
+	bool IsKeyword(string s, int* lexid);
 	bool IsHexChar(int c);
-	bool IsOp(string s);
+	bool IsOp(string s, int* lexid);
 	bool IsReal(string s);
 	void Read1LineComment();
 	void ReadComments(Lexeme* l);

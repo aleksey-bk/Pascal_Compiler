@@ -6,12 +6,15 @@
 #include "ExprRealConst.h"
 #include "ExprVar.h"
 
+#define MaxPriority 5
+#define ParseF (MaxPriority + 1)
+enum {AssignP, PlusMinusP, MulDivP, FuncP, ArrP, RecP};
+
 class Parser
 {	
 private:
 	Tokenizer T;
 	Expression* root;
-	void DestroyNode(Expression* node);
 	double Calc(Expression* node);
 	void AddVar(double val, string name);
 	bool CheckSign(Lexeme S);
@@ -20,20 +23,18 @@ private:
 	string* names;           
 	double* values;
 	Lexeme SaveLex;
-	bool except;
-	int BracketCounter;
 public:
+	static const int priority_length[6];
+	static const int priority_op[6][2];
 	double CalcTree();
 	void Parse();
 	void PrintTree(string FileName);
 	void PrintNode(Expression* node, int h, FILE* F);
-	bool getException();
-	Expression* ParseExpr(Expression* left);
-	Expression* ParseTerm(Expression* left);
+	Expression* ParseExpr(Expression* left, int priority);
 	Expression* ParseFactor();
 	Expression* Brackets();
 	Parser(const char* FileName);
+	Parser();
 	~Parser();
-	const bool FileNotFound;
 };
 

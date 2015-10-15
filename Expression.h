@@ -1,13 +1,8 @@
 #pragma once
 #include <cstdlib>
 #include <string>
-#define Var -3
-#define RealConst -2
-#define IntConst -1
-#define Add 1
-#define Sub 2
-#define Mul 3
-#define Div 4
+
+enum { Var, RealConst, IntConst };
 
 using namespace std;
 

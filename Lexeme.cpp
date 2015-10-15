@@ -2,15 +2,12 @@
 
 
 
-const string Lexeme::LexemeText[9] = { string("string"), string("char"), string("integer"),
-string("hex"), string("real"), string("ident"), string("op"), string("sep"), string("keyword")};
+const string Lexeme::LexemeText[10] = { string("string"), string("char"), string("integer"),
+string("hex"), string("real"), string("ident"), string("op"), string("sep"), string("keyword"), string("dot_end") };
 
 Lexeme::Lexeme(string s, int t, int r, int c)
 {
-	text = s;
-	type = t;
-	row = r;
-	col = c;
+
 }
 
 static string FromHexToInt(string hex)

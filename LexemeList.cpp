@@ -23,7 +23,7 @@ LexemeList::~LexemeList()
 
 void LexemeList::Add(Lexeme in)
 {
-	if (in.type == TypeFalse)
+	if (in.type == TypeEOF)
 		return;
 	if (S == NULL)
 	{
@@ -54,13 +54,13 @@ void LexemeList::PrintAll(FILE* F)
 		fputc('\n', F);
 	while (true)
 	{
-		if (cur->L.type == TypeFalse)
+		if (cur->L.type == TypeEOF)
 		{
 			fprintf_s(F, "%d\t%d\t%s", cur->L.row, cur->L.col, cur->L.text.c_str());
 			return;
 		}
 		fprintf_s(F, "%d\t%d\t%s\t%s", cur->L.row, cur->L.col,
-			Lexeme::LexemeText[cur->L.type - 1].c_str(), cur->L.text.c_str());
+			Lexeme::LexemeText[cur->L.type - 1].c_str(), cur->L.text.c_str()); //false index dont work
 		if ((cur->L.type == TypeInteger) || (cur->L.type == TypeReal)
 			|| (cur->L.type == TypeString) || (cur->L.type == TypeChar) 
 			|| (cur->L.type == TypeHex))

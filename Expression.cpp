@@ -10,5 +10,8 @@ Expression::Expression()
 
 Expression::~Expression()
 {
-
+	if (left)
+		delete left;
+	if (right)
+		delete right;
 }

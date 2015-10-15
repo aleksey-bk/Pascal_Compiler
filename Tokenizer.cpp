@@ -21,9 +21,9 @@ Tokenizer::Tokenizer(const char* FileName)
 	fopen_s(&F, FileName, "rt");
 	if (F == NULL)
 	{
-		string mes = string("File not found");
+		exception a("File not found");
+		throw a;
 		EOFDetected = true;
-		printf_s("%s\n", mes.c_str());
 		return;
 	}
 	row = 1;
@@ -138,22 +138,28 @@ string Tokenizer::ReadHex(Lexeme* l)
 	}
 }
 
-bool Tokenizer::IsKeyword(string s)
+bool Tokenizer::IsKeyword(string s, int* lexid)
 {
 	for (int i = 0; i < OpIdx; ++i)
 	{
 		if (s == Keywords[i])
+		{
+			*lexid = i;
 			return true;
+		}
 	}
 	return false;
 }
 
-bool Tokenizer::IsOp(string s)
+bool Tokenizer::IsOp(string s, int* lexid)
 {
 	for (int i = OpIdx; i < LexNum; ++i)
 	{
 		if (s == Keywords[i])
+		{
+			*lexid = i;
 			return true;
+		}
 	}
 	return false;
 }
@@ -304,7 +310,7 @@ Lexeme Tokenizer::NextLex()
 	Lexeme ret;
 	if (EOFDetected)
 	{
-		ret.type = TypeFalse;
+		ret.type = TypeEOF;
 		ret.text = "EOF";
 		ret.row = row;
 		ret.col = col;
@@ -320,7 +326,7 @@ Lexeme Tokenizer::NextLex()
 		SaveChr = SaveChrFalseVal;
 		if (NextChr == EOF)
 		{
-			ret.type = TypeFalse;  
+			ret.type = TypeEOF;  
 			return ret;
 		}
 		if (IsDigit(NextChr))
@@ -343,11 +349,11 @@ Lexeme Tokenizer::NextLex()
 			ret.text += ReadWord(NextChr);
 			if (ret.type == TypeErr)
 				return ret;
-			if (IsKeyword(ret.text))
+			if (IsKeyword(ret.text, &(ret.lexid)))
 				ret.type = TypeKeyword;
 			else
 			{
-				if (IsOp(ret.text))
+				if (IsOp(ret.text, &ret.lexid))
 					ret.type = TypeOp;
 				else
 					ret.type = TypeIdent;
@@ -388,6 +394,7 @@ Lexeme Tokenizer::NextLex()
 					ret.text.push_back('=');
 					ret.col = col - 2;
 					ret.type = TypeOp;
+					ret.lexid = assign;
 					break;
 				}
 				else
@@ -395,6 +402,7 @@ Lexeme Tokenizer::NextLex()
 					ret.col = col - 2;
 					SaveChr = NextChr;
 					ret.text.push_back(':');
+					ret.lexid = double_dot;
 					ret.type = TypeSep;
 					break;
 				}
@@ -444,10 +452,17 @@ Lexeme Tokenizer::NextLex()
 			case '+':
 			{
 				ret.text.push_back('+');
-				if ((NextChr = NextChar()) == '=')
+				NextChr = NextChar();
+				if ((NextChr) == '=')
+				{
 					ret.text.push_back('=');
+					ret.lexid = plus_eq;
+				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = Plus;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -456,10 +471,17 @@ Lexeme Tokenizer::NextLex()
 			case '-':
 			{
 				ret.text.push_back('-');
-				if ((NextChr = NextChar()) == '=')
+				NextChr = NextChar();
+				if ((NextChr) == '=')
+				{
 					ret.text.push_back('=');
+					ret.lexid = minus_eq;
+				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = Minus;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -468,10 +490,17 @@ Lexeme Tokenizer::NextLex()
 			case '*':
 			{
 				ret.text.push_back('*');
-				if ((NextChr = NextChar()) == '=')
+				NextChr = NextChar();
+				if ((NextChr) == '=')
+				{
 					ret.text.push_back('=');
+					ret.lexid = mul_eq;
+				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = Mul;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -487,9 +516,15 @@ Lexeme Tokenizer::NextLex()
 				}
 				ret.text.push_back('/');
 				if ((NextChr) == '=')
+				{
 					ret.text.push_back('=');
+					ret.lexid = div_eq;
+				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = Div;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -499,6 +534,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back('^');
 				ret.type = TypeOp;
+				ret.lexid = cap;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -508,7 +544,13 @@ Lexeme Tokenizer::NextLex()
 				ret.text.push_back('<');
 				NextChr = NextChar();
 				if ((NextChr == '=') || (NextChr == '>'))
+				{
+					if (NextChr == '=')
+						ret.lexid = less_or_eq;
+					else
+						ret.lexid = not_eq;
 					ret.text.push_back(NextChr);
+				}
 				else
 					SaveChr = NextChr;
 				ret.type = TypeOp;
@@ -520,9 +562,15 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back('>');
 				if ((NextChr = NextChar()) == '=')
+				{
 					ret.text.push_back('=');
+					ret.lexid = big_or_eq;
+				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = big;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -532,6 +580,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back('=');
 				ret.type = TypeOp;
+				ret.type = eq;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -540,6 +589,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back('@');
 				ret.type = TypeOp;
+				ret.lexid = dog;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -547,7 +597,8 @@ Lexeme Tokenizer::NextLex()
 			case '(':
 			{
 				ret.text.push_back(NextChr);
-				ret.type = TypeSep;
+				ret.type = TypeOp;
+				ret.lexid = open_br;
 				ret.col = col - 1;
 				ret.row = row; 
 				break;
@@ -555,7 +606,8 @@ Lexeme Tokenizer::NextLex()
 			case ')':
 			{
 				ret.text.push_back(NextChr);
-				ret.type = TypeSep;
+				ret.type = TypeOp;
+				ret.lexid = close_br;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -563,7 +615,8 @@ Lexeme Tokenizer::NextLex()
 			case '[':
 			{
 				ret.text.push_back(NextChr);
-				ret.type = TypeSep;
+				ret.type = TypeOp;
+				ret.lexid = open_qbr;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -571,7 +624,8 @@ Lexeme Tokenizer::NextLex()
 			case ']':
 			{
 				ret.text.push_back(NextChr);
-				ret.type = TypeSep;
+				ret.type = TypeOp;
+				ret.lexid = close_qbr;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -580,6 +634,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back(NextChr);
 				ret.type = TypeSep;
+				ret.lexid = dot_com;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -588,6 +643,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back(NextChr);
 				ret.type = TypeSep;
+				ret.lexid = com;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -600,11 +656,18 @@ Lexeme Tokenizer::NextLex()
 				{
 					ret.text.push_back('.');
 					ret.type = TypeSep;
+					ret.lexid = dot_dot;
 				}
 				else
 				{
-					SaveChr = NextChr;
-					ret.type = TypeOp;
+					if (!End())
+					{
+						SaveChr = NextChr;
+						ret.type = TypeOp;
+						ret.lexid = rec;
+					}
+					else
+						ret.type = TypeDotEnd;
 				}
 				ret.col = col - 2;
 				ret.row = row;

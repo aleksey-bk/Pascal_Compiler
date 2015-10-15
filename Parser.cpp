@@ -1,10 +1,18 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Parser.h"
 
-Parser::Parser(const char* FileName) : T(FileName), FileNotFound(T.End())
+const int Parser::priority_op[6][2] = { assign, 0, Plus, Minus, Mul, Div, open_br, 0, open_qbr, 0, rec, 0 };
+const int Parser::priority_length[6] = { 1, 2, 2, 1, 1, 1 };
+
+
+Parser::Parser()
 {
-	except = false;
-	BracketCounter = 0;
+
+}
+
+
+Parser::Parser(const char* FileName) : T(FileName)
+{
 	root = NULL;
 	names = NULL;
 	values = NULL;
@@ -12,80 +20,40 @@ Parser::Parser(const char* FileName) : T(FileName), FileNotFound(T.End())
 	SaveLex.text = "";
 }
 
-bool Parser::getException()
-{
-	return except;
-}
-
 
 void Parser::Parse()
 {
 	if (T.End())
 		return;
-	root = ParseExpr(NULL);
-	if (BracketCounter > 0)
-	{
-		char buff[20];
-		Lexeme L = T.NextLex();
-		printf("\n");
-		printf_s((string(_itoa(L.row, buff, 10)) + string(" ") + string(_itoa(L.col, buff, 10)) +
-			string(" expected \')\'")).c_str());
-		printf_s("\n\n");
-		except = true;
-	}
+	root = ParseExpr(NULL, 0);
 	return;
 }
 
 bool Parser::CheckSign(Lexeme S)
 {
-	try
-	{ 
-		char buff[20];
-		switch (S.type)
-		{
-		case TypeErr:
-		{
-			exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
-			string(" err ") + S.text).c_str());
-			throw a;
-		}
-		case TypeSep:
-		{
-			if (S.text == ")")
-			{
-				if (BracketCounter == 0)
-				{
-					exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
-						string(" bad bracket")).c_str());
-					throw a;
-				}
-				else
-					break;
-			}
-		}
-		default:
-		{
-			if (S.type == TypeOp)
-				break;
-			exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
-			string(" bad lex \"") + S.text + string("\"")).c_str());
-			throw a;
-		}
-		}
-	}
-	catch (exception a)
+	char buff[20];
+	switch (S.type)
 	{
-		except = true;
-		printf_s("\n%s\n\n", a.what());
-		return true;
+	case TypeErr:
+	{
+		exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
+		string(" err ") + S.text).c_str());
+		throw a;
+	}
+	default:
+	{
+		if (S.type == TypeOp)
+			break;
+		exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
+			string(" bad lex \"") + S.text + string("\"")).c_str());
+		throw a;
+	}
 	}
 	return false;
 }
 
 bool Parser::CheckOperand(Lexeme S)
 {
-	try
-	{
 		char buff[20];
 		switch (S.type)
 		{
@@ -107,7 +75,7 @@ bool Parser::CheckOperand(Lexeme S)
 			string(" err \"") + S.text + string("\"")).c_str());
 			throw a;
 		}
-		case TypeFalse:
+		case TypeEOF:
 		{
 			exception a((string(_itoa(S.row, buff, 10)) + string(" ") + string(_itoa(S.col, buff, 10)) +
 			string(" BAD EOF")).c_str());
@@ -119,105 +87,78 @@ bool Parser::CheckOperand(Lexeme S)
 			string(" unexpected lex \"") + S.text + string("\"")).c_str());
 			throw a;
 		}
-		}
-	}
-	catch (exception a)
-	{
-		except = true;
-		printf_s("\n%s\n\n", a.what());
-		return true;
 	}
 	return false;
 }
 
-Expression* Parser::ParseExpr(Expression* l)
+
+
+Expression* Parser::ParseExpr(Expression* l, int priority)
 {
+	if (priority == ParseF)
+		return ParseFactor();
 	Expression* left = l;
 	if (left == NULL)
-		left = ParseTerm(NULL);
-	if (except)
-		return NULL;
+		left = ParseExpr(NULL, priority + 1);
 	Lexeme S;
 	if (SaveLex.text == "")
 	{
 		S = T.NextLex();
-		if (S.type == TypeFalse)
+		if (S.type == TypeEOF)
 			return left;
-		if (CheckSign(S))
-			return NULL;
+		CheckSign(S);
 	}
 	else
 	{
 		S = SaveLex;
 		SaveLex.text = "";
 	}
-	if (S.text != "+" && S.text != "-")
+	bool ret = true;
+	int op_idx;
+	for (int i = 0; i < priority_length[priority]; ++i)
+		if (S.lexid == priority_op[priority][i])
+		{
+			ret = false;
+			op_idx = priority_op[priority][i];
+		}
+	if (ret == true)
 	{
 		SaveLex = S;
 		return left;
 	}
-	Expression* right = ParseTerm(NULL);
-	if (except)
-		return NULL;
-	int t;
-	if (S.text == "+")
-		t = Add;
-	else
-		t = Sub;
+	switch (priority)
+	{
+	case FuncP:
+	{
+
+	}
+	case ArrP:
+	{
+
+	}
+	case RecP:
+	{
+		
+	}
+	}
+	Expression* right = ParseExpr(NULL, priority + 1); 
 	if (T.End())
-		return new ExprBinOp(left, t, right);
-	return ParseExpr(new ExprBinOp(left, t, right));
+		return new ExprBinOp(left, op_idx, right);
+	return ParseExpr(new ExprBinOp(left, op_idx, right), priority);
 }
 
-Expression* Parser::ParseTerm(Expression* l)
-{
-	Expression* left = l;
-	if (left == NULL)
-		left = ParseFactor();
-	if (except)
-		return NULL;
-	Lexeme S;
-	if (SaveLex.text == "")
-	{
-		S = T.NextLex();
-		if (S.type == TypeFalse)
-			return left;
-		if (CheckSign(S))
-			return NULL;
-	}
-	else
-	{
-		S = SaveLex;
-		SaveLex.text = "";
-	}
-	if (S.text != "*" && S.text != "/")
-	{
-		SaveLex = S;
-		return left;
-	}
-	Expression* right = ParseFactor();
-	if (except)
-		return NULL;
-	int t;
-	if (S.text == "*")
-		t = Mul;
-	else
-		t = Div;
-	if (T.End())
-		return new ExprBinOp(left, t, right);
-	return ParseTerm(new ExprBinOp(left, t, right));
-}
 
 Expression* Parser::ParseFactor()
 {
 	Lexeme lex = T.NextLex();
-	if (lex.text == "(")
+	if (lex.lexid == open_br)
 	{
-		++BracketCounter;
-		return Brackets();
+		//return Brackets();
+		Expression* r = ParseExpr(NULL, 0);
+		SaveLex.text = "";
+		return r;
 	}
-	if (CheckOperand(lex))
-		return NULL;
+	CheckOperand(lex);
 	if (lex.type == TypeInteger)
 		return new ExprIntConst(stoi(lex.text));
 	if (lex.type == TypeReal)
@@ -230,25 +171,18 @@ Expression* Parser::Brackets()
 {
 	Lexeme SaveLexSave = SaveLex;
 	Expression* l;
-	l = ParseExpr(NULL);
-	if (SaveLex.text == ")")
+	l = ParseExpr(NULL, 0);
+	if (SaveLex.text != ")")
 	{
-		SaveLex = SaveLexSave;
-		--BracketCounter;
-		return l;
+		char buff[20];
+		exception a((string("\n") + string(_itoa(SaveLex.row, buff, 10)) + string(_itoa(SaveLex.col, buff, 10)) +
+			string(" expected \')\'") + string("\n\n")).c_str());
+		throw a;
 	}
-	return NULL;
+	SaveLex = SaveLexSave;
+	return l;
 }
 
-void Parser::DestroyNode(Expression* node)
-{
-	if (node == NULL)
-		return;
-	DestroyNode(node->left);
-	DestroyNode(node->right);
-	delete node;
-	return;
-}
 
 void Parser::AddVar(double val, string name)
 {
@@ -285,9 +219,9 @@ double Parser::Calc(Expression* node)
 		AddVar(var, node->name);
 		return var;
 	}
-	if (node->type == Add)
+	if (node->type == Plus)
 		return Calc(node->left) + Calc(node->right);
-	if (node->type == Sub)
+	if (node->type == Minus)
 		return Calc(node->left) - Calc(node->right);
 	if (node->type == Mul)
 		return Calc(node->left) * Calc(node->right);
@@ -298,7 +232,7 @@ double Parser::Calc(Expression* node)
 double Parser::CalcTree()
 {
 	if (root != NULL)
-		return (Calc(root));
+		return Calc(root);
 	else
 		return 0;
 }
@@ -306,7 +240,8 @@ double Parser::CalcTree()
 
 void Parser::PrintNode(Expression* node, int h, FILE* F)
 {
-	static char sign[4]; sign[0] = '+'; sign[1] = '-'; sign[2] = '*'; sign[3] = '/';
+	static string sign[10]; sign[0] = "+"; sign[1] = "-"; sign[2] = '*'; sign[3] = "/"; //____
+	sign[6] = "[]"; sign[7] = ".";
 	if (node->left)
 		PrintNode(node->left, h + 1, F);
 	for (int i = 0; i < h * 4; ++i)
@@ -354,5 +289,5 @@ void Parser::PrintTree(string FileName)
 
 Parser::~Parser()
 {
-	DestroyNode(root);
+	delete root;
 }
