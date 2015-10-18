@@ -299,7 +299,7 @@ void Tokenizer::ERR(Lexeme* l, const char* mes)
 	l->text = string(mes);
 	l->col = col - 1;
 	l->row = row;
-	l->type = -1;
+	l->type = TypeErr;
 	EOFDetected = true;
 	fclose(F);
 	return;

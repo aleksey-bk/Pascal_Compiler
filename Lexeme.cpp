@@ -53,7 +53,7 @@ void Lexeme::PrintValue(FILE* F)
 
 Lexeme::Lexeme()
 {
-
+	lexid = -1;
 }
 
 

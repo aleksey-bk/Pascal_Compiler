@@ -9,8 +9,8 @@
 
 //#define StdLaunch
 //#define TEST_Tokenizer
-#define StdLaunch_1
-//#define TEST_Parser
+//#define StdLaunch_1
+#define TEST_Parser
 
 
 #ifdef TEST_Tokenizer
@@ -98,7 +98,7 @@ int main()
 				Parser P(FileName.c_str());
 				P.Parse();
 				P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
-				printf("%lf\n", P.CalcTree());
+				//printf("%lf\n", P.CalcTree());
 			}
 			catch (exception a)
 			{
@@ -111,39 +111,47 @@ int main()
 }
 #endif
 #ifdef TEST_Parser
-#define TestNum 7
+#define TestNum 10
 int main()
 {
-	string FileName[TestNum + 1];
-	FileName[TestNum] = "exit";
+	string FileName[TestNum];
+	//FileName[TestNum] = "exit";
 	FileName[0] = "0.txt";
 	FileName[1] = "1.txt";
 	FileName[2] = "2.txt";
-	FileName[3] = "3.txt";
-	FileName[4] = "4.txt";
-	FileName[5] = "5.txt";
-	FileName[6] = "bigtest.txt";
+	FileName[3] = "err_0.txt";
+	FileName[4] = "err_1.txt";
+	FileName[5] = "err_2.txt";
+	FileName[6] = "err_3.txt";
+	FileName[7] = "err_4.txt";
+	FileName[8] = "err_5.txt";
+	FileName[9] = "err_6.txt";
 	cout << "Pascal Compiler by Verkholat Aleksey 2015-2016\n\n";
 	cout << "Enter file name or \"exit\" for close\n\n";
-	FileName[TestNum] = "exit";
+	//FileName[TestNum] = "exit";
 #define FileName FileName[i]
-	int i = -1;
-	while (i <= TestNum)
-	{
-		++i;
+	int i = 0;
+	while (i < TestNum)
+	{	
 		if (FileName == "exit")
 			break;
-		Parser P(FileName.c_str());
-		if (P.FileNotFound)
-			continue;
 		else
 		{
-			P.Parse();
-			if (P.getException())
+			try
+			{
+				Parser P(FileName.c_str());
+				P.Parse();
+				P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
+				//printf("%lf\n", P.CalcTree());
+			}
+			catch (exception a)
+			{
+				printf_s("\n%s\n\n", a.what());
+				++i;
 				continue;
-			P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
-			//printf("%lf\n", P.CalcTree());
+			}
 		}
+		++i;
 	}
 	return 0;
 }

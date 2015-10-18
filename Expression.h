@@ -1,8 +1,9 @@
 #pragma once
 #include <cstdlib>
 #include <string>
+#include <vector>
 
-enum { Var, RealConst, IntConst };
+enum { Var, RealConst, IntConst, Args };
 
 using namespace std;
 
@@ -15,6 +16,7 @@ public:
 	int intConst;
 	double realConst;
 	string name;
+	vector<Expression*> args;
 	Expression();
 	~Expression();
 };
