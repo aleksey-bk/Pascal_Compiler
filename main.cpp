@@ -111,7 +111,7 @@ int main()
 }
 #endif
 #ifdef TEST_Parser
-#define TestNum 10
+#define TestNum 11
 int main()
 {
 	string FileName[TestNum];
@@ -126,6 +126,7 @@ int main()
 	FileName[7] = "err_4.txt";
 	FileName[8] = "err_5.txt";
 	FileName[9] = "err_6.txt";
+	FileName[10] = "err_7.txt";
 	cout << "Pascal Compiler by Verkholat Aleksey 2015-2016\n\n";
 	cout << "Enter file name or \"exit\" for close\n\n";
 	//FileName[TestNum] = "exit";

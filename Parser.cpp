@@ -1,8 +1,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Parser.h"
 
-const int Parser::priority_op[5][2] = { assign, 0, Plus, Minus, Mul, Div, open_br, 0, open_qbr, rec };
-const int Parser::priority_length[5] = { 1, 2, 2, 1, 2 };
+const int Parser::priority_op[MaxPriority + 1][3] = { assign, 0, 0, Plus, Minus, 0, Mul, Div, 0, open_br, open_qbr, rec };
+const int Parser::priority_length[MaxPriority + 1] = { 1, 2, 2, 3};
 
 
 
@@ -38,7 +38,7 @@ void Parser::Parse()
 	if (T.End())
 		return;
 	root = ParseExpr(NULL, FormNoBr, 0);
-	fclose(T.F);
+	//fclose(T.F);
 	return;
 }
 
@@ -58,7 +58,7 @@ void Parser::CheckSign(Lexeme S, int form)
 		if ((S.lexid == close_qbr) && (form != FormArr))
 			throw GetErrInformation(S, "unexpected lex");
 		if (S.lexid == assign && dot_com_flag == true)
-			throw GetErrInformation(S, "expected \";\"");
+			throw GetErrInformation(S, "unexpected lex");
 		break;
 	}
 	case TypeSep:
@@ -84,7 +84,7 @@ void Parser::CheckLeft(Lexeme S, Expression* left)
 {
 	if ((S.lexid == assign || S.lexid == rec || S.lexid == open_qbr)
 		&& (left->type != Var && left->type != open_qbr && left->type != rec && left->type != open_br))
-		throw GetErrInformation(S, "bad left value");
+		throw GetErrInformation(S, "bad left operand");
 	if (!dot_com_flag && S.lexid == assign)
 		dot_com_flag = true;
 	return;
@@ -92,7 +92,6 @@ void Parser::CheckLeft(Lexeme S, Expression* left)
 
 void Parser::CheckOperand(Lexeme S)
 {
-		char buff[20];
 		switch (S.type)
 		{
 		case TypeInteger :
@@ -120,7 +119,7 @@ void Parser::CheckOperand(Lexeme S)
 			throw GetErrInformation(S, "unexpected lex");
 		}
 	}
-		return;
+	return;
 }
 
 
@@ -167,6 +166,11 @@ Expression* Parser::ParseArgs(int id_end_parse)
 	return ret;
 }
 
+bool Parser::IsTypename(Lexeme l)
+{
+	return (l.text == "char" || l.text == "integer" || l.text == "double"); //add new types
+}
+
 
 Expression* Parser::ParseExpr(Expression* l, int form, int priority)
 {
@@ -203,23 +207,12 @@ Expression* Parser::ParseExpr(Expression* l, int form, int priority)
 		return left;
 	}
 	Expression* right = NULL;
-	switch (priority)
-	{
-	case FuncP:
-	{
+	if (S.lexid == open_br)
 		right = ParseArgs(close_br);
-		break;
-	}
-	case ArrP:
-	{
-		if (S.lexid == rec)
-			break;
+	if (S.lexid == open_qbr)
 		right = ParseArgs(close_qbr);
-		break;
-	}
-	}
 	if (right == NULL)
-		right = ParseExpr(NULL, form, 0); // priority + 1
+		right = ParseExpr(NULL, form, priority + 1); // priority + 1
 	if (T.End())
 		return new ExprBinOp(left, op_idx, right);
 	return ParseExpr(new ExprBinOp(left, op_idx, right), form, priority); //priority 
@@ -240,6 +233,29 @@ Expression* Parser::ParseFactor(int form)
 		else
 			throw GetErrInformation(LastLex, "expected \")\"");
 	}
+	int t;
+	if ((t = IsUnaryOp(lex)) != -1)
+	{
+		if (t == UnMinus && form == FormUnMinus)
+			throw GetErrInformation(lex, "bad minus");
+		Expression* r = NULL;
+		if (t == TypeCast)
+		{
+			r = new Expression();
+			r->name = lex.text;
+			r->type = Var;
+			return new ExprUnOp(ParseFactor(form), t, r);
+		}
+		//for debug delete this________
+		if (t == UnMinus)
+		{
+			r = new Expression();
+			r->name = string("***");
+			r->type = Var;
+		}
+		//_____________________________
+		return new ExprUnOp(ParseFactor(FormUnMinus), t, r);
+	}
 	CheckOperand(lex);
 	if (lex.type == TypeInteger)
 		return new ExprIntConst(stoi(lex.text));
@@ -247,6 +263,15 @@ Expression* Parser::ParseFactor(int form)
 		return new ExprRealConst(stod(lex.text));
 	if (lex.type == TypeIdent)
 		return new ExprVar(lex.text);
+}
+
+int Parser::IsUnaryOp(Lexeme l)   //add new operators
+{
+	if (l.lexid == Minus)
+		return UnMinus; 
+	if (IsTypename(l))
+		return TypeCast;
+	return -1;          
 }
 
 
@@ -287,6 +312,8 @@ double Parser::Calc(Expression* node)
 	}
 	if (node->type == Plus)
 		return Calc(node->left) + Calc(node->right);
+	if (node->type == UnMinus)
+		return -Calc(node->left);
 	if (node->type == Minus)
 		return Calc(node->left) - Calc(node->right);
 	if (node->type == Mul)
@@ -306,8 +333,8 @@ double Parser::CalcTree()
 
 void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
 {
-	if (node->left)
-		PrintNode(node->left, h + 1, F, args);
+	if (node->right)
+		PrintNode(node->right, h + 1, F, args);
 	if (!args)
 	{
 		for (int i = 0; i < h * 4; ++i)
@@ -333,12 +360,12 @@ void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
 	}
 	case open_br:
 	{
-		fprintf_s(F, "%s", string("()").c_str());
+		fprintf_s(F, "%s", string("(f)").c_str());
 		break;
 	}
 	case open_qbr:
 	{
-		fprintf_s(F, "%s", string("[]").c_str());
+		fprintf_s(F, "%s", string("[a]").c_str());
 		break;
 	}
 	case assign:
@@ -380,12 +407,23 @@ void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
 			if (i < l - 1)
 				fprintf(F, " ");
 		}
+		break;
+	}
+	case TypeCast:
+	{
+		fprintf_s(F, "%s", string("(t)").c_str());
+		break;
+	}
+	case UnMinus:
+	{
+		fprintf_s(F, "%s", string("-").c_str());
+		break;
 	}
 	}
 	if (!args)
 		fprintf(F, "\n\n");
-	if (node->right)
-		PrintNode(node->right, h + 1, F, args);
+	if (node->left)
+		PrintNode(node->left, h + 1, F, args);
 	return;
 }
 

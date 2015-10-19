@@ -6,12 +6,12 @@
 #include "ExprRealConst.h"
 #include "ExprVar.h"
 #include "ExprArgs.h"
+#include "ExprUnOp.h"
 #include <vector>
 
-#define MaxPriority 4
+#define MaxPriority 3
 #define ParseF (MaxPriority + 1)
-enum {AssignP, PlusMinusP, MulDivP, FuncP, ArrP}; //rec priority = ArrP
-enum {FormNoBr, FormExpr, FormFunc, FormArr};
+enum {FormNoBr, FormExpr, FormFunc, FormArr, FormUnMinus};
 
 class Parser
 {	
@@ -34,12 +34,14 @@ private:
 	exception GetErrInformation(Lexeme l, string inf);
 public:
 	Tokenizer T;
-	static const int priority_length[5];
-	static const int priority_op[5][2];
+	static const int priority_length[MaxPriority + 1];
+	static const int priority_op[MaxPriority + 1][3];
 	double CalcTree();
 	void Parse();
 	void PrintTree(string FileName);
 	void PrintNode(Expression* node, int h, FILE* F, bool args);
+	bool IsTypename(Lexeme l);
+	int IsUnaryOp(Lexeme l);
 	Expression* ParseExpr(Expression* left, int form, int priority);
 	Expression* ParseFactor(int form);
 	Expression* ParseArgs(int id_end_parse);
