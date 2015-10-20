@@ -38,7 +38,6 @@ void Parser::Parse()
 	if (T.End())
 		return;
 	root = ParseExpr(NULL, FormNoBr, 0);
-	//fclose(T.F);
 	return;
 }
 
@@ -144,9 +143,9 @@ Expression* Parser::ParseArgs(int id_end_parse)
 		if (T.End())
 		{
 			if (id_end_parse == close_br)
-				throw GetErrInformation(LastLex, "expected \")\"");
+				throw GetErrInformation(SaveLex, "expected \")\"");
 			else
-				throw GetErrInformation(LastLex, "expected \"]\"");
+				throw GetErrInformation(SaveLex, "expected \"]\"");
 		}
 		Expression* E = ParseExpr(NULL, form, 0);
 		if (SaveLex.lexid == com)
@@ -231,7 +230,7 @@ Expression* Parser::ParseFactor(int form)
 			return r;
 		}
 		else
-			throw GetErrInformation(LastLex, "expected \")\"");
+			throw GetErrInformation(SaveLex, "expected \")\"");
 	}
 	int t;
 	if ((t = IsUnaryOp(lex)) != -1)
@@ -243,7 +242,7 @@ Expression* Parser::ParseFactor(int form)
 		{
 			r = new Expression();
 			r->name = lex.text;
-			r->type = Var;
+			r->type = TypeCastName;
 			return new ExprUnOp(ParseFactor(form), t, r);
 		}
 		//for debug delete this________
@@ -331,19 +330,31 @@ double Parser::CalcTree()
 }
 
 
-void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
+void Parser::PrintNode(Expression* node, int h, FILE* F)
 {
+	static int first_arg_h = -1;
 	if (node->right)
-		PrintNode(node->right, h + 1, F, args);
-	if (!args)
+		PrintNode(node->right, h + 1, F);
+	if (first_arg_h == -1)
 	{
 		for (int i = 0; i < h * 4; ++i)
 			fprintf_s(F, " ");
+	}
+	else
+	{
+		for (int i = 0; i < (h - first_arg_h) * 4; ++i)
+			fprintf_s(F, " ");
+		first_arg_h = -1;
 	}
 	int a = node->type;
 	switch (node->type)
 	{
 	case Var:
+	{
+		fprintf_s(F, "%s", node->name.c_str());
+		break;
+	}
+	case TypeCastName:
 	{
 		fprintf_s(F, "%s", node->name.c_str());
 		break;
@@ -403,9 +414,13 @@ void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
 		int l = node->args.size();
 		for (int i = 0; i < l; ++i)
 		{
-			PrintNode(node->args.at(i), h, F, true);
-			if (i < l - 1)
-				fprintf(F, " ");
+			if (i == 0)
+			{
+				first_arg_h = h;
+				PrintNode(node->args.at(i), h, F);
+			}
+			else
+				PrintNode(node->args.at(i), h, F);
 		}
 		break;
 	}
@@ -420,10 +435,10 @@ void Parser::PrintNode(Expression* node, int h, FILE* F, bool args)
 		break;
 	}
 	}
-	if (!args)
+	if (node->type != Args)
 		fprintf(F, "\n\n");
 	if (node->left)
-		PrintNode(node->left, h + 1, F, args);
+		PrintNode(node->left, h + 1, F);
 	return;
 }
 
@@ -433,7 +448,7 @@ void Parser::PrintTree(string FileName)
 		return;
 	FILE* F;
 	fopen_s(&F, FileName.c_str(), "wt");
-	PrintNode(root, 0, F, false);
+	PrintNode(root, 0, F);
 	fclose(F);
 	return;
 }

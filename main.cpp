@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include "Tokenizer.h"
 #include "LexemeList.h"
 #include "Lexeme.h"
@@ -111,48 +112,30 @@ int main()
 }
 #endif
 #ifdef TEST_Parser
-#define TestNum 11
 int main()
 {
-	string FileName[TestNum];
-	//FileName[TestNum] = "exit";
-	FileName[0] = "0.txt";
-	FileName[1] = "1.txt";
-	FileName[2] = "2.txt";
-	FileName[3] = "err_0.txt";
-	FileName[4] = "err_1.txt";
-	FileName[5] = "err_2.txt";
-	FileName[6] = "err_3.txt";
-	FileName[7] = "err_4.txt";
-	FileName[8] = "err_5.txt";
-	FileName[9] = "err_6.txt";
-	FileName[10] = "err_7.txt";
-	cout << "Pascal Compiler by Verkholat Aleksey 2015-2016\n\n";
-	cout << "Enter file name or \"exit\" for close\n\n";
-	//FileName[TestNum] = "exit";
-#define FileName FileName[i]
-	int i = 0;
-	while (i < TestNum)
-	{	
-		if (FileName == "exit")
+	char* sourceTest = "sourceTest.txt";
+	FILE* F;
+	fopen_s(&F, sourceTest, "rt");
+	ifstream FS(sourceTest);
+	string FN;
+	while (true)
+	{
+		if (FS.eof())
 			break;
-		else
+		getline(FS, FN);
+		try
 		{
-			try
-			{
-				Parser P(FileName.c_str());
-				P.Parse();
-				P.PrintTree(FileName.substr(0, FileName.length() - 3) + "out");
-				//printf("%lf\n", P.CalcTree());
-			}
-			catch (exception a)
-			{
-				printf_s("\n%s\n\n", a.what());
-				++i;
-				continue;
-			}
+			Parser P(FN.c_str());
+			P.Parse();
+			P.PrintTree(FN.substr(0, FN.length() - 3) + "out");
+			//printf("%lf\n", P.CalcTree());
 		}
-		++i;
+		catch (exception a)
+		{
+			printf_s("\n%s\n\n", a.what());
+			continue;
+		}
 	}
 	return 0;
 }
