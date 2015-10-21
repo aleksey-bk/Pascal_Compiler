@@ -115,8 +115,6 @@ int main()
 int main()
 {
 	char* sourceTest = "sourceTest.txt";
-	FILE* F;
-	fopen_s(&F, sourceTest, "rt");
 	ifstream FS(sourceTest);
 	string FN;
 	while (true)

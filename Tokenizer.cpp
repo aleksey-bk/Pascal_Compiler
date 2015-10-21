@@ -342,7 +342,7 @@ Lexeme Tokenizer::NextLex()
 				ret.type = TypeInteger;
 			break;
 		}
-		if (IsABC(NextChr))
+		if (IsABC(NextChr) || IsUnderscore(NextChr))
 		{
 			ret.row = row;
 			ret.col = col - 1;
