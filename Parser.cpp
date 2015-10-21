@@ -27,7 +27,7 @@ exception Parser::GetErrInformation(Lexeme l, string inf)
 	char buff[20];
 	exception e((string(_itoa(l.row, buff, 10)) + string(" ") +
 	string(_itoa(l.col, buff, 10)) + string(" err ") + string(l.text) +
-	string(" ") + inf + string("\n")).c_str());
+	string(" ") + inf).c_str());
 	fclose(T.F);
 	return e;
 }
@@ -62,7 +62,7 @@ void Parser::CheckSign(Lexeme S, int form)
 	}
 	case TypeSep:
 	{
-		if ((S.lexid == com) && (form >= FormFunc))
+		if ((S.lexid == com) && (form == FormFunc || form == FormArr))
 			break;
 		if (S.lexid == dot_com)
 		{

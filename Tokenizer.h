@@ -6,7 +6,9 @@
 #define OpIdx 25
 class Tokenizer
 {
+	friend class Parser;
 private:
+	FILE* F;
 	LexemeList List;
 	int SaveChr;
 	int row;
@@ -34,7 +36,6 @@ private:
 	string ReadWord(int PrevChr);
 	string ReadString(Lexeme* l);
 public:
-	FILE* F;
 	Tokenizer(const char* file);
 	Tokenizer();
 	Lexeme NextLex();
