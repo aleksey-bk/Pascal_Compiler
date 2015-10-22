@@ -24,6 +24,7 @@ private:
 	void CheckSign(Lexeme S, int form);
 	void CheckOperand(Lexeme S);
 	void CheckLeft(Lexeme S, Expression* left);
+	void CheckRight(Lexeme S, Expression* right);
 	exception GetErrInformation(Lexeme l, string inf);
 	bool dot_com_flag;
 	bool IsTypename(Lexeme l);

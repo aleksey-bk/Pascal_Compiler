@@ -81,11 +81,21 @@ void Parser::CheckSign(Lexeme S, int form)
 
 void Parser::CheckLeft(Lexeme S, Expression* left)
 {
-	if ((S.lexid == assign || S.lexid == rec || S.lexid == open_qbr)
-		&& (left->type != Var && left->type != open_qbr && left->type != rec && left->type != open_br))
+	if (S.lexid == open_br && left->type != Ident)
+		throw GetErrInformation(S, "bad left operand");
+	if ((S.lexid == assign || S.lexid == rec || S.lexid == open_qbr) &&
+		(left->type != Ident && left->type != open_qbr 
+		&& left->type != rec && left->type != open_br))
 		throw GetErrInformation(S, "bad left operand");
 	if (!dot_com_flag && S.lexid == assign)
 		dot_com_flag = true;
+	return;
+}
+
+void Parser::CheckRight(Lexeme S, Expression* right)
+{
+	if (S.lexid == rec && right->type != Ident)
+		throw GetErrInformation(S, "bad right operand");
 	return;
 }
 
@@ -125,6 +135,7 @@ void Parser::CheckOperand(Lexeme S)
 Expression* Parser::ParseArgs(int id_end_parse)
 {
 	int form;
+	bool args = false;
 	vector<Expression*> R;
 	if (id_end_parse == close_br)
 		form = FormFunc;
@@ -148,6 +159,13 @@ Expression* Parser::ParseArgs(int id_end_parse)
 				throw GetErrInformation(SaveLex, "expected \"]\"");
 		}
 		Expression* E = ParseExpr(NULL, form, 0);
+		if (E->type == VoidArg)
+		{
+			if (args == false)
+				return E;
+			else
+				throw GetErrInformation(SaveLex, "bad com");
+		}	
 		if (SaveLex.lexid == com)
 			SaveLex.lexid = -1;
 		if (SaveLex.lexid == id_end_parse)
@@ -157,6 +175,7 @@ Expression* Parser::ParseArgs(int id_end_parse)
 			break;
 		}
 		R.push_back(E);
+		args = true;
 	}
 	if (set_dcf)
 		dot_com_flag = false;
@@ -211,7 +230,10 @@ Expression* Parser::ParseExpr(Expression* l, int form, int priority)
 	if (S.lexid == open_qbr)
 		right = ParseArgs(close_qbr);
 	if (right == NULL)
+	{
 		right = ParseExpr(NULL, form, priority + 1); // priority + 1
+		CheckRight(S, right);
+	}
 	if (T.End())
 		return new ExprBinOp(left, op_idx, right);
 	return ParseExpr(new ExprBinOp(left, op_idx, right), form, priority); //priority 
@@ -221,6 +243,13 @@ Expression* Parser::ParseExpr(Expression* l, int form, int priority)
 Expression* Parser::ParseFactor(int form)
 {
 	Lexeme lex = T.NextLex();
+	if (lex.lexid == close_br && form == FormFunc)
+	{
+		Expression* void_arg = new Expression();
+		void_arg->type = VoidArg;
+		SaveLex = lex; //close_br
+		return void_arg;
+	}
 	if (lex.lexid == open_br)
 	{
 		Expression* r = ParseExpr(NULL, FormExpr, 0);
@@ -238,11 +267,11 @@ Expression* Parser::ParseFactor(int form)
 		if (t == UnMinus && form == FormUnMinus)
 			throw GetErrInformation(lex, "bad minus");
 		Expression* r = NULL;
-		if (t == TypeCast)
+		if (t == Cast)
 		{
 			r = new Expression();
 			r->name = lex.text;
-			r->type = TypeCastName;
+			r->type = CastName;
 			return new ExprUnOp(ParseFactor(form), t, r);
 		}
 		//for debug delete this________
@@ -250,7 +279,7 @@ Expression* Parser::ParseFactor(int form)
 		{
 			r = new Expression();
 			r->name = string("***");
-			r->type = Var;
+			r->type = Ident;
 		}
 		//_____________________________
 		return new ExprUnOp(ParseFactor(FormUnMinus), t, r);
@@ -269,7 +298,7 @@ int Parser::IsUnaryOp(Lexeme l)   //add new operators
 	if (l.lexid == Minus)
 		return UnMinus; 
 	if (IsTypename(l))
-		return TypeCast;
+		return Cast;
 	return -1;          
 }
 
@@ -298,7 +327,7 @@ double Parser::Calc(Expression* node)
 		return node->intConst;
 	if (node->type == RealConst)
 		return node->realConst;
-	if (node->type == Var)
+	if (node->type == Ident)
 	{
 		for (int i = 0; i < numVars; ++i)
 			if (names[i] == node->name)
@@ -349,12 +378,12 @@ void Parser::PrintNode(Expression* node, int h, FILE* F)
 	int a = node->type;
 	switch (node->type)
 	{
-	case Var:
+	case Ident:
 	{
 		fprintf_s(F, "%s", node->name.c_str());
 		break;
 	}
-	case TypeCastName:
+	case CastName:
 	{
 		fprintf_s(F, "%s", node->name.c_str());
 		break;
@@ -371,12 +400,12 @@ void Parser::PrintNode(Expression* node, int h, FILE* F)
 	}
 	case open_br:
 	{
-		fprintf_s(F, "%s", string("(f)").c_str());
+		fprintf_s(F, "%s", string("(F)").c_str());
 		break;
 	}
 	case open_qbr:
 	{
-		fprintf_s(F, "%s", string("[a]").c_str());
+		fprintf_s(F, "%s", string("[A]").c_str());
 		break;
 	}
 	case assign:
@@ -424,14 +453,19 @@ void Parser::PrintNode(Expression* node, int h, FILE* F)
 		}
 		break;
 	}
-	case TypeCast:
+	case Cast:
 	{
-		fprintf_s(F, "%s", string("(t)").c_str());
+		fprintf_s(F, "%s", string("(T)").c_str());
 		break;
 	}
 	case UnMinus:
 	{
 		fprintf_s(F, "%s", string("-").c_str());
+		break;
+	}
+	case VoidArg:
+	{
+		fprintf_s(F, "%s", string("(V)").c_str());
 		break;
 	}
 	}

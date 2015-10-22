@@ -3,7 +3,7 @@
 
 ExprVar::ExprVar(string s)
 {
-	type = Var;
+	type = Ident;
 	name = s;
 	left = NULL;
 	right = NULL;

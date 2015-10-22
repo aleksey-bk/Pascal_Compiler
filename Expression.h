@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-enum { Var, RealConst, IntConst, UnMinus, Args, TypeCast, TypeCastName };
+enum { Ident, RealConst, IntConst, UnMinus, Args, Cast, CastName, VoidArg };
 
 using namespace std;
 
