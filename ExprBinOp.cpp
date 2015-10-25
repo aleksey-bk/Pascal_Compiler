@@ -3,9 +3,10 @@
 
 ExprBinOp::ExprBinOp(Expression* L, int t, Expression* R)
 {
+	type = BinOp;
 	left = L;
 	right = R;
-	type = t;
+	operation = t;
 }
 
 

@@ -4,7 +4,7 @@
 ExprRealConst::ExprRealConst(double n)
 {
 	type = RealConst;
-	realConst = n;
+	real_const = n;
 	left = NULL;
 	right = NULL;
 }

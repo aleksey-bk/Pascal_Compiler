@@ -1,11 +1,11 @@
 #include "ExprUnOp.h"
 
 
-ExprUnOp::ExprUnOp(Expression* left, int t, Expression* right)
+ExprUnOp::ExprUnOp(Expression* left, int t)
 {
+	type = UnOp;
 	this->left = left;
-	this->right = right;
-	this->type = t;
+	this->operation = t;
 }
 
 

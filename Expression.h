@@ -3,20 +3,17 @@
 #include <string>
 #include <vector>
 
-enum { Ident, RealConst, IntConst, UnMinus, Args, Cast, CastName, VoidArg };
+enum { UnMinus, VoidArg, Func, Cast };
+enum { Args, BinOp, IntConst, RealConst, UnOp, Var };
 
 using namespace std;
 
 class Expression
 {
 public:
-	int type;
 	Expression* right;
 	Expression* left;
-	int intConst;
-	double realConst;
-	string name;
-	vector<Expression*> args;
+	int type;
 	Expression();
 	~Expression();
 };

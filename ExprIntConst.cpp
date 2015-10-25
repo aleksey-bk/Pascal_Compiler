@@ -4,7 +4,7 @@
 ExprIntConst::ExprIntConst(int n)
 {
 	type = IntConst;
-	intConst = n;
+	int_const = n;
 	left = NULL;
 	right = NULL;
 }

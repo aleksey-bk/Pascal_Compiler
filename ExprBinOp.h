@@ -5,6 +5,7 @@
 class ExprBinOp : public Expression
 {
 public:
+	int operation;
 	ExprBinOp(Expression* L, int t, Expression* R);
 	~ExprBinOp();
 };
