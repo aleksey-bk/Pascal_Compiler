@@ -4,9 +4,10 @@
 
 
 
-const int Parser::priority_op[MaxPriority + 1][3] =
-{ { assign }, { Plus, Minus }, { Mul, Div }, { open_br, open_qbr, rec } };
-const int Parser::priority_length[MaxPriority + 1] = { 1, 2, 2, 3 };
+const int Parser::priority_op[MaxPriority + 1][5] =
+{ { assign }, { Plus, Minus, XOR, OR }, { Mul, Div, DIV, MOD, AND },
+{ open_br, open_qbr, rec } };
+const int Parser::priority_length[MaxPriority + 1] = { 1, 4, 5, 3 };
 
 Parser::Parser()
 {
@@ -27,7 +28,6 @@ exception Parser::GetErrInformation(Lexeme l, string inf)
 	exception e((string(_itoa(l.row, buff, 10)) + string(" ") +
 	string(_itoa(l.col, buff, 10)) + string(" err ") + string(l.text) +
 	string(" ") + inf).c_str());
-	fclose(T.F);
 	return e;
 }
 
@@ -52,8 +52,6 @@ void Parser::CheckSign(Lexeme S)
 	}
 	case TypeOp:
 	{
-		if (S.lexid == assign && dot_com_flag == true)
-			throw GetErrInformation(S, "unexpected lex");
 		break;
 	}
 	case TypeSep:
@@ -80,7 +78,7 @@ void Parser::CheckOperand(Lexeme S)
 {
 		switch (S.type)
 		{
-		case TypeInteger :
+		case TypeInteger:
 		{
 			break;
 		}
@@ -133,23 +131,26 @@ Expression* Parser::ParseRecord(Expression* l)
 		{
 			switch (((ExprBinOp*)l)->operation)
 			{
-			case open_br:
+			case Func:
+				break;
+			case Cast:
 				break;
 			case open_qbr:
 				break;
 			case rec:
 				break;
 			default:
-				GetErrInformation(LastLex, "bad record name");
+				throw GetErrInformation(LastLex, "bad record name");
 			}
 		}
 		else
 			throw GetErrInformation(LastLex, "bad record name");
 	}
-	Expression* field = ParseFactor();
-	if (field->type != Var)
-		throw GetErrInformation(SaveLex, "bad right operand"); //?
-	return field;
+	Lexeme field = T.NextLex();
+	if (field.type == TypeIdent)
+		return new ExprVar(field.text);
+	else
+		throw GetErrInformation(field, "bad right operand"); //?
 }
 
 Expression* Parser::ParseFunction(int& operation_type, Expression* l)
@@ -210,7 +211,9 @@ Expression* Parser::ParseArray(Expression* l)
 		{
 			switch (((ExprBinOp*)l)->operation)
 			{
-			case open_br:
+			case Func:
+				break;
+			case Cast:
 				break;
 			case open_qbr:
 				break;
@@ -224,33 +227,26 @@ Expression* Parser::ParseArray(Expression* l)
 			throw GetErrInformation(LastLex, "bad array name");
 	}
 	ExprArgs* args = new ExprArgs();
-	vector<Expression*> args_vector;
 	Expression* E;
 	while (true)
 	{
-		E = ParseExpr(1, false);
+		E = ParseExpr(1, NULL);
 		if (E->type == RealConst)
 			throw GetErrInformation(LastLex, "bad array index");
 		if (SaveLex.lexid == com)
-		{
-			args_vector.push_back(E);
 			SaveLex.lexid = -1;
+		else if (SaveLex.lexid == close_qbr)
+		{
+			if (E->type == Args)
+				throw GetErrInformation(LastLex, "bad array index");
+			args->args.push_back(E);
+			break;
 		}
 		else
-		{
-			if (SaveLex.lexid == close_qbr)
-			{
-				if (E->type == Args)
-					throw GetErrInformation(LastLex, "bad array index");
-				args_vector.push_back(E);
-				break;
-			}
-			else
-				throw GetErrInformation(SaveLex, "bad lex");
-		}
+			throw GetErrInformation(SaveLex, "bad lex");
+		args->args.push_back(E);
 	}
 	SaveLex.lexid = -1;
-	args->args = args_vector;
 	return args;
 }
 
@@ -265,7 +261,7 @@ Expression* Parser::ParseCast()
 
 Expression* Parser::ParseBinOp(int op_idx, int priority)
 {
-	return ParseExpr(priority + 1, false);
+	return ParseExpr(priority + 1, NULL); //priority +1
 }
 
 
@@ -276,8 +272,7 @@ Expression* Parser::ParseExpr(int priority, Expression* L)
 	{
 		if (priority == ParseF)
 			return ParseFactor();
-		else
-			left = ParseExpr(priority + 1, NULL);
+		left = ParseExpr(priority + 1, NULL);
 	}
 	else
 		left = L;
@@ -342,7 +337,7 @@ Expression* Parser::ParseFactor()
 	}
 	if (lex.lexid == open_br)
 	{
-		Expression* r = ParseExpr(1, false);
+		Expression* r = ParseExpr(1, NULL);
 		if (SaveLex.lexid == close_br)
 		{
 			SaveLex.lexid = -1;
@@ -353,7 +348,7 @@ Expression* Parser::ParseFactor()
 	}
 	int t;
 	if ((t = IsUnaryOp(lex)) != -1)
-		return new ExprUnOp(ParseExpr(MaxPriority, NULL), t); // ?MaxPriority
+		return new ExprUnOp(ParseExpr(MaxPriority, NULL), t); // ??? MaxPriority but its work
 	CheckOperand(lex);
 	if (lex.type == TypeInteger)
 		return new ExprIntConst(stoi(lex.text));
@@ -368,14 +363,23 @@ int Parser::IsUnaryOp(Lexeme l)   //add new operators
 {
 	if (l.lexid == Minus)
 		return UnMinus; 
+	if (l.lexid == dog)
+		return dog;
+	if (l.lexid == NOT)
+		return NOT;
 	return -1;          
 }
 
 
 void Parser::PrintNode(Expression* node, int h, FILE* F)
 {
+	int reindex_length = 14;
+	static int reindex_array[] = {Func, Cast, open_qbr, assign, rec, Plus, 
+	Minus, Mul, Div, DIV, MOD, OR, XOR, AND};
+	static string print_array[] = { "F", "T", "[ ]", ":=", ".", "+",
+	"-", "*", "/", "/", "MOD", "OR", "XOR", "AND"};
 	static int first_arg_h = -1;
-	if (node->right)
+	if (node->right)	
 		PrintNode(node->right, h + 1, F);
 	if (first_arg_h == -1)
 	{
@@ -409,72 +413,23 @@ void Parser::PrintNode(Expression* node, int h, FILE* F)
 	}
 	case BinOp:
 	{
-		switch (((ExprBinOp*)node)->operation)
+		int op = ((ExprBinOp*)node)->operation;
+		for (int i = 0; i < reindex_length; ++i)
 		{
-		case Func:
-		{
-			_break = true;
-			fprintf_s(F, "%s", string("F").c_str());
-			break;
+			if (reindex_array[i] == op)
+			{
+				fprintf_s(F, print_array[i].c_str());
+				break;
+			}
 		}
-		case Cast:
-		{
-			_break = true;
-			fprintf_s(F, "%s", string("T").c_str());
-			break;
-		}
-		case open_qbr:
-		{
-			_break = true;
-			fprintf_s(F, "%s", string("[ ]").c_str());
-			break;
-		}
-		case assign:
-		{
-			_break = true;
-			fprintf_s(F, "%s", string(":=").c_str());
-			break;
-		}
-		case rec:
-		{
-			_break = true;
-			fprintf_s(F, "%c", '.');
-			break;
-		}
-		case Plus:
-		{
-			_break = true;
-			fprintf_s(F, "%c", '+');
-			break;
-		}
-		case Minus:
-		{
-			_break = true;
-			fprintf_s(F, "%c", '-');
-			break;
-		}
-		case Mul:
-		{
-			_break = true;
-			fprintf_s(F, "%c", '*');
-			break;
-		}
-		case Div:
-		{
-			_break = true;
-			fprintf_s(F, "%c", '/');
-			break;
-		}
-		}
+		break;
 	}
 	case Args:
 	{
-		if (_break)
-			break;
 		if (((ExprArgs*)node)->void_arg)
 		{
 			_break = true;
-			fprintf_s(F, "%s", string("***").c_str());
+			fprintf_s(F, "%s", string("***\n\n").c_str());
 			break;
 		}
 		ExprArgs* n = ((ExprArgs*)node);
@@ -501,6 +456,18 @@ void Parser::PrintNode(Expression* node, int h, FILE* F)
 		{
 			_break = true;
 			fprintf_s(F, "%s", string("-").c_str());
+			break;
+		}
+		case NOT:
+		{
+			_break = true;
+			fprintf_s(F, "%s", string("NOT").c_str());
+			break;
+		}
+		case dog:
+		{
+			_break = true;
+			fprintf_s(F, "%s", string("@").c_str());
 			break;
 		}
 		}

@@ -6,7 +6,7 @@ enum
 {
 	KWarray, KWbegin, KWbreak, KWcontinue, KWdo, KWdownto, KWelse, KWend, KWfor, KWforward,
 	KWfunction, KWif, KWin, KWof, KWprocedure, KWprogram, KWrecord, KWrepeat, KWthen, KWto, KWtype, KWuntil,
-	KWvar, KWwhile, KWexit, KWand, KWdiv, KWmod, KWor, KWnot, KWxor,
+	KWvar, KWwhile, KWexit, AND, DIV, MOD, OR, NOT, XOR,
 	TypeEOF, TypeErr, TypeString, TypeChar, TypeInteger, TypeHex,
 	TypeReal, TypeIdent, TypeOp, TypeSep, TypeKeyword, TypeDotEnd,
 	assign, Plus, Minus, Mul, Div, open_br, open_qbr, rec, close_qbr,

@@ -7,8 +7,8 @@
 
 //#define StdLaunch
 //#define TEST_Tokenizer
-//#define StdLaunch_1
-#define TEST_Parser
+#define StdLaunch_1
+//#define TEST_Parser
 
 
 #ifdef TEST_Tokenizer

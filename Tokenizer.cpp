@@ -40,7 +40,7 @@ Tokenizer::Tokenizer()
 
 Tokenizer::~Tokenizer()
 {
-
+	fclose(F);
 }
 
 
@@ -51,10 +51,7 @@ int Tokenizer::NextChar()
 		return EOF;
 	int r = fgetc(F);
 	if (r == EOF)
-	{
 		EOFDetected = true;
-		fclose(F);
-	}
 	if (r != '\n')
 		++col;
 	else
@@ -67,10 +64,7 @@ int Tokenizer::NextChar()
 
 bool Tokenizer::IsDigit(int c)
 {
-	if (((c - '0') <= 9) && ((c - '0') >= 0))
-		return true;
-	else
-		return false;
+	return (((c - '0') <= 9) && ((c - '0') >= 0));
 }
 
 bool Tokenizer::IsABC(int c)
@@ -349,7 +343,7 @@ Lexeme Tokenizer::NextLex()
 			ret.text += ReadWord(NextChr);
 			if (ret.type == TypeErr)
 				return ret;
-			if (IsKeyword(ret.text, &(ret.lexid)))
+			if (IsKeyword(ret.text, &ret.lexid))
 				ret.type = TypeKeyword;
 			else
 			{

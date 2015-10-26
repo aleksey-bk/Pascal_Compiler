@@ -1,14 +1,14 @@
-    integer
+            a
 
-(t)
-
-        char
-
-    (t)
+        T
 
             double
 
-        (t)
+    T
 
-            a
+        char
+
+T
+
+    integer
 

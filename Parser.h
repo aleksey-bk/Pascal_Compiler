@@ -39,7 +39,7 @@ private:
 	void PrintNode(Expression* node, int h, FILE* F);
 public:
 	static const int priority_length[MaxPriority + 1];
-	static const int priority_op[MaxPriority + 1][3];
+	static const int priority_op[MaxPriority + 1][5];
 	void Parse();
 	void PrintTree(string FileName);
 	Parser(const char* FileName);

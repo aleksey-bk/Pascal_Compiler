@@ -5,6 +5,11 @@
 4.txt
 5.txt
 6.txt
+7.txt
+8.txt
+9.txt
+10.txt
+11.txt
 bigtest.txt
 err_0.txt
 err_1.txt
@@ -14,3 +19,5 @@ err_4.txt
 err_5.txt
 err_6.txt
 err_7.txt
+err_8.txt
+err_9.txt

@@ -5,3 +5,8 @@ FC 3.out 3.ans
 FC 4.out 4.ans
 FC 5.out 5.ans
 FC 6.out 6.ans
+FC 7.out 7.ans
+FC 8.out 8.ans
+FC 9.out 9.ans
+FC 10.out 10.ans
+FC 11.out 11.ans
