@@ -25,14 +25,11 @@ Type -> TypeId
      -> VariantType
      -> ClassRefType
 
-RestrictedType -> ObjectType
-               -> ClassType
-               -> InterfaceType
-ClassRefType -> CLASS OF TypeId
+
 SimpleType -> (OrdinalType | RealType)
 RealType -> DOUBLE
 OrdinalType -> (SubrangeType | EnumeratedType | OrdIdent)
-OrdIdent -> INTEGER
+OrdIdent -> INTEGER | CHAR
 
 SubrangeType -> ConstExpr '..' ConstExpr
 EnumeratedType -> '(' EnumeratedTypeElement ','... ')'
