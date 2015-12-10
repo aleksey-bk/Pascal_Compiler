@@ -1,0 +1,7 @@
+//input file
+
+var
+  a, b: double;
+begin
+  a := b + a + b;
+end.

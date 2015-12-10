@@ -1,0 +1,5 @@
+type
+hard_type = array [10..12] of array [10..11] of double;
+const
+const_var: hard_type = ((1.51, 1.52), (10.51, 10.52), (0.01, 0.09));
+begin

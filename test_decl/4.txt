@@ -1,0 +1,5 @@
+type
+t = double;
+var
+a: t;
+begin

@@ -1,0 +1,4 @@
+FunGenerator.exe
+Pascal_Compiler.exe PT
+call Test.bat
+pause

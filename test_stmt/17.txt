@@ -1,0 +1,8 @@
+//input file
+
+var
+  a: integer;
+begin
+  while a > 1 do
+    begin
+end.

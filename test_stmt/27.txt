@@ -1,0 +1,21 @@
+//input file
+
+type
+  REC4 = record
+    i: integer;
+  end;
+  REC3 = record
+    b: REC4;
+  end;
+  REC2 = record
+    a: REC3;
+  end;
+  REC = record
+    c: REC2;
+  end;
+var
+  v: REC;
+  int: integer;
+begin
+  int := v.c.a.b.i;
+end.

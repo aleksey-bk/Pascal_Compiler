@@ -7,9 +7,9 @@
 
 const string Tokenizer::Keywords[LexNum] = { string("array"), string("begin"), string("break"),
 string("continue"), string("do"), string("downto"), string("else"), string("end"), string("for"),
-string("forward"), string("function"), string("if"), string("in"), string("of"), string("procedure"),
+string("forward"), string("function"), string("if"), string("exit"), string("of"), string("procedure"),
 string("program"), string("record"), string("repeat"), string("then"), string("to"), string("type"),
-string("until"), string("var"), string("while"), string("exit"), string("and"), string("div"), string("mod"),
+string("until"), string("var"), string("while"), string("in"), string("and"), string("div"), string("mod"),
 string("or"), string("not"), string("xor") };
 
 
@@ -178,7 +178,15 @@ string Tokenizer::ReadNumber(int PrevChr, Lexeme* l)
 			}
 			if (dot == true)
 			{
-				ERR(l, "BadNumber");
+				int nextdot = NextChar();
+				if (IsDot(nextdot))
+				{
+					fseek(F, -2, SEEK_CUR);
+					SaveChr = SaveChrFalseVal;
+					return n;
+				}
+				else	
+					ERR(l, "BadNumber");
 				return string("");
 			}
 			dot = true;
@@ -248,6 +256,8 @@ string Tokenizer::ReadString(Lexeme* l)
 				str.push_back('\'');
 				continue;
 			}
+			else
+				SaveChr = LastChr;
 			return str;
 		}
 		str.push_back(LastChr);
@@ -301,7 +311,9 @@ void Tokenizer::ERR(Lexeme* l, const char* mes)
 
 Lexeme Tokenizer::NextLex()
 {
+	static int LastLexID;
 	Lexeme ret;
+	ret.lexid = -1;
 	if (EOFDetected)
 	{
 		ret.type = TypeEOF;
@@ -363,10 +375,10 @@ Lexeme Tokenizer::NextLex()
 			if (ret.type == TypeErr)
 				return ret;
 			ret.text.push_back('\'');
-			if (ret.text.length() > 3)
-				ret.type = TypeString;
-			else
+			if (ret.text.length() == 3)
 				ret.type = TypeChar;
+			else
+				ret.type = TypeString;
 			break;
 		}
 		switch (NextChr)
@@ -546,7 +558,10 @@ Lexeme Tokenizer::NextLex()
 					ret.text.push_back(NextChr);
 				}
 				else
+				{
 					SaveChr = NextChr;
+					ret.lexid = less_;
+				}
 				ret.type = TypeOp;
 				ret.col = col - 2;
 				ret.row = row;
@@ -574,7 +589,7 @@ Lexeme Tokenizer::NextLex()
 			{
 				ret.text.push_back('=');
 				ret.type = TypeOp;
-				ret.type = eq;
+				ret.lexid = eq;
 				ret.col = col - 1;
 				ret.row = row;
 				break;
@@ -654,14 +669,17 @@ Lexeme Tokenizer::NextLex()
 				}
 				else
 				{
-					if (!End())
+					if (LastLexID == KWend)
+					{
+						ret.type = TypeDotEnd;
+						EOFDetected = true;
+					}
+					else
 					{
 						SaveChr = NextChr;
 						ret.type = TypeOp;
 						ret.lexid = rec;
 					}
-					else
-						ret.type = TypeDotEnd;
 				}
 				ret.col = col - 2;
 				ret.row = row;
@@ -683,6 +701,7 @@ Lexeme Tokenizer::NextLex()
 		}
 		break;
 	}
+	LastLexID = ret.lexid;
 	return ret;
 }
 

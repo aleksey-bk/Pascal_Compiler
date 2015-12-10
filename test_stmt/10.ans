@@ -1,0 +1,7 @@
+var
+  a, b: integer;
+begin
+  for a := 1 to 100 do
+    while a > 1 do
+      b := a + b;
+end.

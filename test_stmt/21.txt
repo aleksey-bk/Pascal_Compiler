@@ -1,0 +1,7 @@
+//input file
+
+type
+  REC = record
+  end;
+begin
+end.

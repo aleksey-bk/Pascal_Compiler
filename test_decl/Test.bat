@@ -1,0 +1,13 @@
+C:\WINDOWS\system32\FC 0.out 0.ans
+C:\WINDOWS\system32\FC 1.out 1.ans
+C:\WINDOWS\system32\FC 2.out 2.ans
+C:\WINDOWS\system32\FC 3.out 3.ans
+C:\WINDOWS\system32\FC 4.out 4.ans
+C:\WINDOWS\system32\FC 5.out 5.ans
+C:\WINDOWS\system32\FC 6.out 6.ans
+C:\WINDOWS\system32\FC 7.out 7.ans
+C:\WINDOWS\system32\FC 8.out 8.ans
+C:\WINDOWS\system32\FC 9.out 9.ans
+C:\WINDOWS\system32\FC 10.out 10.ans
+C:\WINDOWS\system32\FC 11.out 11.ans
+C:\WINDOWS\system32\FC 12.out 12.ans

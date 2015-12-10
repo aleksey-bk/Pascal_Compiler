@@ -1,0 +1,5 @@
+type
+t = array [1..5] of integer;
+var
+a: t;
+begin

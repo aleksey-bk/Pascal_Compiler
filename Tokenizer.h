@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include "Lexeme.h"
 #define LexNum 31
-#define OpIdx 25
+#define OpIdx 24
 class Tokenizer
 {
 	friend class Parser;

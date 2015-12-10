@@ -1,0 +1,12 @@
+//input file
+
+var
+  a, b, c, i: integer;
+begin
+  if (a > b) and (b > c) then
+  begin
+    for i := 1 to a do
+      begin
+      end;
+   end;
+end.

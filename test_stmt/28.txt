@@ -1,0 +1,10 @@
+//input file
+
+type
+  REC = record
+    i, j: integer;
+  end;
+const
+  a: REC;
+begin
+end.

@@ -1,0 +1,7 @@
+type
+  mytype = integer;
+var
+  a: mytype = 5;
+begin
+  a := 10;
+end.

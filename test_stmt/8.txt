@@ -1,0 +1,12 @@
+//input file
+
+var
+  a, b: integer;
+begin
+  while 1 do
+  begin
+    if a > b then
+      break;
+    a := a + 1;
+  end;
+end.

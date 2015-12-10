@@ -1,0 +1,8 @@
+//input file
+
+var
+  i: integer;
+begin
+  i := 10;
+end.
+    

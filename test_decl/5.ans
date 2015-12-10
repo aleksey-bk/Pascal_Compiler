@@ -1,0 +1,5 @@
+type
+t = char;
+var
+a: t;
+begin

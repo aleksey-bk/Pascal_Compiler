@@ -10,3 +10,10 @@ FC 8.out 8.ans
 FC 9.out 9.ans
 FC 10.out 10.ans
 FC 11.out 11.ans
+FC 12.out 12.ans
+FC 13.out 13.ans
+FC 14.out 14.ans
+FC 15.out 15.ans
+FC 16.out 16.ans
+FC 17.out 17.ans
+FC 18.out 18.ans

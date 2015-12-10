@@ -1,0 +1,14 @@
+//input file
+
+type
+  REC = record
+    i, j: integer;
+  end;
+var
+  a: REC;
+  b: integer;
+begin
+  a.i := 5;
+  a.j := a.i + a.i;
+  b := a.i;
+end.

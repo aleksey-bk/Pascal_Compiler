@@ -7,7 +7,7 @@ class ExprVar :	public Expression
 {
 public:
 	string name;
-	ExprVar(string s);
+	ExprVar(string s, SymType* t);
 	~ExprVar();
 };
 

@@ -1,0 +1,6 @@
+type
+t1 = integer;
+t2 = t1;
+var
+a: t2;
+begin

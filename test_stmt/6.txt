@@ -1,0 +1,9 @@
+//input file
+
+var
+  i, j: integer;
+begin
+  while i > j do
+    begin
+    end;
+end.

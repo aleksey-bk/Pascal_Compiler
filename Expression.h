@@ -1,10 +1,12 @@
 #pragma once
+#include "SymType.h"
+#include "Symbol.h"
 #include <cstdlib>
 #include <string>
 #include <vector>
 
-enum { UnMinus, VoidArg, Func, Cast };
-enum { Args, BinOp, IntConst, RealConst, UnOp, Var };
+enum { UnMinus, VoidArg, Func, Cast, Cap, Dog, Not};
+enum { Args, BinOp, IntConst, RealConst, CharConst, UnOp, Var};
 
 using namespace std;
 
@@ -14,6 +16,7 @@ public:
 	Expression* right;
 	Expression* left;
 	int type;
+	SymType* expr_type;
 	Expression();
 	~Expression();
 };

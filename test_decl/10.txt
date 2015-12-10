@@ -1,0 +1,6 @@
+type
+hard_type = array [1..1000] of array [1..1000] of array [1..1000] of array [1..212] of char;
+very_hard_type = array [1..999] of array [1..999] of hard_type;
+var
+hard_var: very_hard_type;
+begin

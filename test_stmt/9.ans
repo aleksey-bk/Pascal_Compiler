@@ -1,0 +1,8 @@
+var
+  a: integer;
+begin
+  for a := 1 to 1000 do
+    begin
+      continue;
+    end;
+end.

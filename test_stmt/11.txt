@@ -1,0 +1,14 @@
+//input file
+
+var
+  i: integer;
+begin
+  for i := 1 to 5 do
+    begin
+      while 1 do
+        begin
+          break;
+        end;
+      break;  
+    end;
+end.
